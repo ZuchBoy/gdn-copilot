@@ -6,6 +6,7 @@ import {
     getAllGames,
     getAllGameIds,
     getGameById,
+    getGamesByFilters,
 } from './games';
 
 async function seedGames(db: Database, count: number): Promise<void> {
@@ -28,6 +29,52 @@ async function seedGames(db: Database, count: number): Promise<void> {
             publisherId: publisher.id,
         });
     }
+}
+
+async function seedFilterableGames(db: Database): Promise<{ categoryIds: number[]; publisherIds: number[] }> {
+    const categoryRows = await db
+        .insert(categories)
+        .values([
+            { name: 'Strategia', description: 'kat' },
+            { name: 'Przygodowa', description: 'kat' },
+        ])
+        .returning({ id: categories.id });
+    const publisherRows = await db
+        .insert(publishers)
+        .values([
+            { name: 'Wydawca Jeden', description: 'wyd' },
+            { name: 'Wydawca Dwa', description: 'wyd' },
+        ])
+        .returning({ id: publishers.id });
+
+    await db.insert(games).values([
+        {
+            title: 'Gra Alfa',
+            description: 'Opis',
+            starRating: 4.2,
+            categoryId: categoryRows[0].id,
+            publisherId: publisherRows[0].id,
+        },
+        {
+            title: 'Gra Beta',
+            description: 'Opis',
+            starRating: 4.2,
+            categoryId: categoryRows[1].id,
+            publisherId: publisherRows[0].id,
+        },
+        {
+            title: 'Gra Gamma',
+            description: 'Opis',
+            starRating: 4.2,
+            categoryId: categoryRows[0].id,
+            publisherId: publisherRows[1].id,
+        },
+    ]);
+
+    return {
+        categoryIds: categoryRows.map((row) => row.id),
+        publisherIds: publisherRows.map((row) => row.id),
+    };
 }
 
 describe('helpery dostępu do danych o grach', () => {
@@ -62,5 +109,50 @@ describe('helpery dostępu do danych o grach', () => {
     it('zwraca null dla nieistniejącej gry', async () => {
         await seedGames(db, 2);
         expect(await getGameById(db, 99999)).toBeNull();
+    });
+
+    it('dopasowuje gry do dowolnej z wybranych kategorii', async () => {
+        const { categoryIds } = await seedFilterableGames(db);
+
+        const filtered = await getGamesByFilters(db, { categoryIds });
+
+        expect(filtered.map((game) => game.title)).toEqual(['Gra Alfa', 'Gra Beta', 'Gra Gamma']);
+    });
+
+    it('dopasowuje gry do dowolnego z wybranych wydawców', async () => {
+        const { publisherIds } = await seedFilterableGames(db);
+
+        const filtered = await getGamesByFilters(db, { publisherIds });
+
+        expect(filtered.map((game) => game.title)).toEqual(['Gra Alfa', 'Gra Beta', 'Gra Gamma']);
+    });
+
+    it('łączy filtr kategorii z filtrem wydawcy', async () => {
+        const { categoryIds, publisherIds } = await seedFilterableGames(db);
+
+        const filtered = await getGamesByFilters(db, {
+            categoryIds: [categoryIds[0]],
+            publisherIds: [publisherIds[1]],
+        });
+
+        expect(filtered.map((game) => game.title)).toEqual(['Gra Gamma']);
+    });
+
+    it('traktuje brak filtrów i puste listy jak brak ograniczeń', async () => {
+        await seedFilterableGames(db);
+
+        const allWithoutFilters = await getGamesByFilters(db, {});
+        const allWithEmptyLists = await getGamesByFilters(db, { categoryIds: [], publisherIds: [] });
+
+        expect(allWithoutFilters.map((game) => game.title)).toEqual(['Gra Alfa', 'Gra Beta', 'Gra Gamma']);
+        expect(allWithEmptyLists.map((game) => game.title)).toEqual(['Gra Alfa', 'Gra Beta', 'Gra Gamma']);
+    });
+
+    it('zwraca pustą listę, gdy filtry nie pasują do żadnej gry', async () => {
+        await seedFilterableGames(db);
+
+        const filtered = await getGamesByFilters(db, { categoryIds: [99999] });
+
+        expect(filtered).toEqual([]);
     });
 });

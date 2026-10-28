@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import GameCard from '../components/GameCard.astro';
+import GameFilters from '../components/GameFilters.astro';
 import PageHero from '../components/PageHero.astro';
 import EmptyState from '../components/EmptyState.astro';
 import { getDatabase } from '../lib/db';
@@ -9,6 +10,18 @@ import { getAllGames } from '../lib/games';
 export const prerender = true;
 
 const games = await getAllGames(getDatabase());
+const categoryMap = new Map<number, string>();
+const publisherMap = new Map<number, string>();
+
+for (const game of games) {
+  if (game.category) categoryMap.set(game.category.id, game.category.name);
+  if (game.publisher) publisherMap.set(game.publisher.id, game.publisher.name);
+}
+
+const categories = Array.from(categoryMap, ([id, name]) => ({ id, name }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+const publishers = Array.from(publisherMap, ([id, name]) => ({ id, name }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'pl'));
 ---
 
 <Layout title="Tailspin Toys - Wesprzyj swoją nową ulubioną grę!">
@@ -24,9 +37,12 @@ const games = await getAllGames(getDatabase());
       {games.length === 0 ? (
         <EmptyState text="Na razie nie ma żadnych gier." />
       ) : (
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="games-grid">
-          {games.map((game) => <GameCard game={game} />)}
-        </div>
+        <>
+          <GameFilters categories={categories} publishers={publishers} gamesCount={games.length} />
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="games-grid">
+            {games.map((game) => <GameCard game={game} />)}
+          </div>
+        </>
       )}
     </div>
   </div>
