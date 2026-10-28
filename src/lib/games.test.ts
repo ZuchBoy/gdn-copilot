@@ -31,6 +31,12 @@ async function seedGames(db: Database, count: number): Promise<void> {
     }
 }
 
+/**
+ * Wstawia minimalny zestaw gier do sprawdzania kombinacji filtrów.
+ *
+ * @param db - Testowa baza danych w pamięci.
+ * @returns Identyfikatory utworzonych kategorii i wydawców.
+ */
 async function seedFilterableGames(db: Database): Promise<{ categoryIds: number[]; publisherIds: number[] }> {
     const categoryRows = await db
         .insert(categories)
