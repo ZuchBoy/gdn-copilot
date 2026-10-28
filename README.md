@@ -16,6 +16,8 @@ Tailspin Toys to platforma crowdfundingowa dla gier planszowych o tematyce progr
 
 Komendy deweloperskie są zdefiniowane w `package.json`. Hooki `predev` i `prebuild` uruchamiają migrację i zasilenie bazy z `db/`, zapisując do ignorowanego przez gita pliku `tailspin.db`.
 
+Na stronie głównej można filtrować gry po wielu kategoriach i wydawcach. Zaznaczone wartości w ramach każdego filtra działają jako „dowolna z wybranych”, a filtry kategorii i wydawcy można łączyć. Wyniki aktualizują się w przeglądarce bez backendu, zgodnie ze statycznym wyjściem Astro.
+
 ## Jak korzystać z tego szablonu
 
 To repozytorium jest szablonem GitHuba. Kiedy utworzysz z niego nowe repozytorium, jednorazowy workflow **Załóż zgłoszenia startowe** (`.github/workflows/bootstrap-issues.yml`) uruchomi się automatycznie przy pierwszym pushu na `main` i **założy 9 zgłoszeń po polsku** z propozycjami pierwszych funkcjonalności. Każde zgłoszenie jest zdefiniowane plikiem Markdown w `.github/bootstrap-issues/` (pierwszy nagłówek to tytuł, reszta to treść), więc możesz tam edytować, dodawać i usuwać pliki, żeby sterować tym, co powstanie.
