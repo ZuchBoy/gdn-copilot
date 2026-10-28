@@ -3,6 +3,9 @@ import type { Database } from './db';
 import { games, categories, publishers } from '../../db/schema';
 import type { Game } from '../types/game';
 
+/**
+ * Opcjonalne filtry listy gier oparte na identyfikatorach relacji.
+ */
 export interface GameFilters {
     categoryIds?: number[];
     publisherIds?: number[];
@@ -61,7 +64,16 @@ export async function getAllGames(db: Database): Promise<Game[]> {
     return rows.map(mapGame);
 }
 
-/** Gry spełniające filtry kategorii i wydawców, posortowane po tytule. */
+/**
+ * Zwraca gry spełniające filtry kategorii i wydawców, posortowane po tytule.
+ *
+ * Wartości w obrębie każdego filtra są łączone przez OR, a filtry kategorii
+ * i wydawców przez AND. Pusta lista nie ogranicza wyników.
+ *
+ * @param db - Wstrzyknięta instancja bazy danych.
+ * @param filters - Identyfikatory kategorii i wydawców do uwzględnienia.
+ * @returns Pasujące gry posortowane alfabetycznie po tytule.
+ */
 export async function getGamesByFilters(db: Database, filters: GameFilters): Promise<Game[]> {
     const conditions: SQL[] = [];
 

@@ -1,6 +1,7 @@
 ---
 import type { Category, Publisher } from '../types/game';
 
+/** Wartości potrzebne do wyrenderowania kontrolek filtrowania gier. */
 interface Props {
     categories: Category[];
     publishers: Publisher[];
@@ -75,6 +76,12 @@ const { categories, publishers, gamesCount } = Astro.props;
 </p>
 
 <script>
+    /**
+     * Zwraca element DOM wymagany przez filtry albo zgłasza brak konfiguracji.
+     *
+     * @param selector - Selektor elementu wymaganego przez komponent filtrów.
+     * @returns Znaleziony element o wskazanym typie.
+     */
     function requireElement<T extends HTMLElement>(selector: string): T {
         const element = document.querySelector<T>(selector);
         if (!element) {
@@ -90,6 +97,9 @@ const { categories, publishers, gamesCount } = Astro.props;
     const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-testid="game-card"]'));
     const filters = Array.from(document.querySelectorAll<HTMLInputElement>('input[data-filter-kind]'));
 
+    /**
+     * Ukrywa karty niepasujące do zaznaczonych filtrów i aktualizuje status wyników.
+     */
     function updateGames(): void {
         const selectedCategories = new Set(
             filters
